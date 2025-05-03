@@ -305,4 +305,4 @@ func SendMessageHandler(db *sqlx.DB) gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, message)
 	}
-} 
+}

@@ -2,8 +2,6 @@ package handlers
 
 import (
 	"FurniSwap/utils"
-	"crypto/rand"
-	"encoding/base64"
 	"log"
 	"net/http"
 	"time"
@@ -16,6 +14,8 @@ import (
 type RegisterRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=6"`
+	Name     string `json:"name" binding:"required"`
+	LastName string `json:"last_name" binding:"required"`
 }
 
 // RegisterHandler обрабатывает регистрацию пользователя
@@ -24,6 +24,18 @@ func RegisterHandler(db *sqlx.DB) gin.HandlerFunc {
 		var req RegisterRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Неверные данные"})
+			return
+		}
+
+		// Проверяем, существует ли пользователь с таким email
+		var exists bool
+		err := db.Get(&exists, "SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)", req.Email)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка проверки email"})
+			return
+		}
+		if exists {
+			c.JSON(http.StatusConflict, gin.H{"error": "Пользователь с таким email уже существует"})
 			return
 		}
 
@@ -37,15 +49,17 @@ func RegisterHandler(db *sqlx.DB) gin.HandlerFunc {
 		// Сохраняем пользователя в БД
 		var userID int
 		err = db.QueryRow(`
-			INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id
-		`, req.Email, string(hashedPassword)).Scan(&userID)
+			INSERT INTO users (email, password_hash, name, last_name) 
+			VALUES ($1, $2, $3, $4) RETURNING id
+		`, req.Email, string(hashedPassword), req.Name, req.LastName).Scan(&userID)
 		if err != nil {
+			log.Printf("Ошибка сохранения пользователя: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка сохранения пользователя"})
 			return
 		}
 
 		// Генерируем 6-значный код
-		code := generateCode()
+		code := utils.GenerateCode()
 
 		// Сохраняем код в БД с 10-минутным сроком действия
 		_, err = db.Exec(`
@@ -66,22 +80,4 @@ func RegisterHandler(db *sqlx.DB) gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, gin.H{"message": "Код подтверждения отправлен"})
 	}
-}
-
-// generateCode генерирует 6-значный код
-func generateCode() string {
-	b := make([]byte, 6) // 6 байтов для кода
-	_, err := rand.Read(b)
-	if err != nil {
-		return "000000" // На случай ошибки, вернуть фиксированный код
-	}
-
-	code := base64.StdEncoding.EncodeToString(b)
-
-	// Убеждаемся, что код >= 6 символов
-	if len(code) < 6 {
-		return code
-	}
-
-	return code[:6]
 }

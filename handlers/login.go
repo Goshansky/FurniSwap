@@ -3,11 +3,12 @@ package handlers
 import (
 	"FurniSwap/utils"
 	"database/sql"
+	"net/http"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
-	"net/http"
-	"time"
 )
 
 type LoginRequest struct {
@@ -53,7 +54,14 @@ func LoginHandler(db *sqlx.DB) gin.HandlerFunc {
 		}
 
 		// Генерируем новый 2FA-код
-		code := generateCode()
+		code := utils.GenerateCode()
+
+		// Сначала удаляем старые коды, если они есть
+		_, err = db.Exec(`DELETE FROM two_factor_codes WHERE user_id = $1`, userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка при обработке аутентификации"})
+			return
+		}
 
 		// Сохраняем код в БД с 10-минутным сроком действия
 		_, err = db.Exec(`

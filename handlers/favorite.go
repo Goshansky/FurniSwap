@@ -158,4 +158,4 @@ func IsFavoriteHandler(db *sqlx.DB) gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, gin.H{"is_favorite": exists})
 	}
-} 
+}

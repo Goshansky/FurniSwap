@@ -40,7 +40,7 @@ func UploadImage(file *multipart.FileHeader) (string, error) {
 	// Создаем уникальное имя файла с использованием UUID и оригинального расширения
 	ext := filepath.Ext(file.Filename)
 	newFilename := fmt.Sprintf("%s_%s%s", time.Now().Format("20060102"), uuid.New().String(), ext)
-	
+
 	// Полный путь к новому файлу
 	dst := filepath.Join(UploadDir, newFilename)
 
@@ -84,12 +84,12 @@ func DeleteImage(imagePath string) error {
 func isImageFile(filename string) bool {
 	ext := strings.ToLower(filepath.Ext(filename))
 	validExts := []string{".jpg", ".jpeg", ".png", ".gif"}
-	
+
 	for _, validExt := range validExts {
 		if ext == validExt {
 			return true
 		}
 	}
-	
+
 	return false
-} 
+}

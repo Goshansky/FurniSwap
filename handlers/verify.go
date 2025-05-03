@@ -1,14 +1,13 @@
 package handlers
 
 import (
+	"FurniSwap/utils"
 	"database/sql"
-	"github.com/gin-gonic/gin"
-	"github.com/jmoiron/sqlx"
 	"net/http"
-	"os"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
 )
 
 type VerifyRequest struct {
@@ -25,18 +24,36 @@ func VerifyHandler(db *sqlx.DB) gin.HandlerFunc {
 			return
 		}
 
+		// Проверяем существование пользователя
+		var exists bool
+		err := db.Get(&exists, "SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)", req.Email)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка проверки пользователя"})
+			return
+		}
+		if !exists {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Пользователь не найден"})
+			return
+		}
+
 		var userID int
 		var expiresAt time.Time
-		err := db.QueryRow(`
+		err = db.QueryRow(`
 			SELECT user_id, expires_at FROM two_factor_codes 
 			WHERE code = $1 AND user_id = (SELECT id FROM users WHERE email = $2)
 		`, req.Code, req.Email).Scan(&userID, &expiresAt)
 
-		if err == sql.ErrNoRows || time.Now().After(expiresAt) {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверный или просроченный код"})
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверный код"})
 			return
 		} else if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка проверки кода"})
+			return
+		}
+
+		// Проверяем срок действия кода
+		if time.Now().After(expiresAt) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Код просрочен"})
 			return
 		}
 
@@ -48,7 +65,11 @@ func VerifyHandler(db *sqlx.DB) gin.HandlerFunc {
 		}
 
 		// Удаляем использованный код
-		_, _ = db.Exec(`DELETE FROM two_factor_codes WHERE user_id = $1`, userID)
+		_, err = db.Exec(`DELETE FROM two_factor_codes WHERE user_id = $1`, userID)
+		if err != nil {
+			// Логируем ошибку, но продолжаем выполнение
+			// Это некритичная ошибка, так как пользователь уже верифицирован
+		}
 
 		c.JSON(http.StatusOK, gin.H{"message": "Email подтвержден!"})
 	}
@@ -68,38 +89,61 @@ func Verify2FAHandler(db *sqlx.DB) gin.HandlerFunc {
 			return
 		}
 
+		// Проверяем существование и верификацию пользователя
 		var userID int
-		var expiresAt time.Time
+		var isVerified bool
 		err := db.QueryRow(`
-			SELECT user_id, expires_at FROM two_factor_codes 
-			WHERE code = $1 AND user_id = (SELECT id FROM users WHERE email = $2)
-		`, req.Code, req.Email).Scan(&userID, &expiresAt)
+			SELECT id, is_verified FROM users WHERE email = $1
+		`, req.Email).Scan(&userID, &isVerified)
 
-		if err == sql.ErrNoRows || time.Now().After(expiresAt) {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверный или просроченный код"})
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Пользователь не найден"})
+			return
+		} else if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка проверки пользователя"})
+			return
+		}
+
+		if !isVerified {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Email не подтвержден"})
+			return
+		}
+
+		// Проверяем код
+		var expiresAt time.Time
+		err = db.QueryRow(`
+			SELECT expires_at FROM two_factor_codes 
+			WHERE code = $1 AND user_id = $2
+		`, req.Code, userID).Scan(&expiresAt)
+
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверный код"})
 			return
 		} else if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка проверки кода"})
 			return
 		}
 
+		// Проверяем срок действия кода
+		if time.Now().After(expiresAt) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Код просрочен"})
+			return
+		}
+
 		// Удаляем использованный код
-		_, _ = db.Exec(`DELETE FROM two_factor_codes WHERE user_id = $1`, userID)
+		_, err = db.Exec(`DELETE FROM two_factor_codes WHERE user_id = $1`, userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка при обработке аутентификации"})
+			return
+		}
 
 		// Генерируем JWT
-		token := generateJWT(userID)
+		token, err := utils.GenerateToken(userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка создания токена"})
+			return
+		}
 
 		c.JSON(http.StatusOK, gin.H{"token": token})
 	}
-}
-
-// generateJWT создает JWT-токен
-func generateJWT(userID int) string {
-	secret := os.Getenv("JWT_SECRET")
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": userID,
-		"exp":     time.Now().Add(time.Hour * 72).Unix(),
-	})
-	tokenString, _ := token.SignedString([]byte(secret))
-	return tokenString
 }
