@@ -25,7 +25,7 @@ type Message struct {
 	Content   string    `db:"content" json:"content"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	IsRead    bool      `db:"is_read" json:"is_read"`
-	UserName  string    `json:"user_name,omitempty"`
+	UserName  string    `db:"user_name" json:"user_name,omitempty"`
 }
 
 // CreateMessageRequest структура для создания нового сообщения
@@ -35,15 +35,15 @@ type CreateMessageRequest struct {
 
 // ChatResponse структура для ответа со списком чатов пользователя
 type ChatResponse struct {
-	ID              int       `json:"id"`
-	ListingID       int       `json:"listing_id"`
-	ListingTitle    string    `json:"listing_title"`
+	ID              int       `db:"id" json:"id"`
+	ListingID       int       `db:"listing_id" json:"listing_id"`
+	ListingTitle    string    `db:"listing_title" json:"listing_title"`
 	ImageURL        string    `json:"image_url,omitempty"`
-	OtherUserID     int       `json:"other_user_id"`
-	OtherUserName   string    `json:"other_user_name"`
-	LastMessage     string    `json:"last_message,omitempty"`
-	LastMessageTime time.Time `json:"last_message_time,omitempty"`
-	UnreadCount     int       `json:"unread_count"`
+	OtherUserID     int       `db:"other_user_id" json:"other_user_id"`
+	OtherUserName   string    `db:"other_user_name" json:"other_user_name"`
+	LastMessage     string    `db:"last_message" json:"last_message,omitempty"`
+	LastMessageTime time.Time `db:"last_message_time" json:"last_message_time,omitempty"`
+	UnreadCount     int       `db:"unread_count" json:"unread_count"`
 }
 
 // InitiateChatRequest структура для создания нового чата

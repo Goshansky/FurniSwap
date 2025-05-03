@@ -3,6 +3,7 @@ package handlers
 import (
 	"FurniSwap/models"
 	"database/sql"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -107,6 +108,9 @@ func GetChatsHandler(db *sqlx.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := c.GetInt("userID")
 
+		// Debug logging
+		fmt.Printf("Fetching chats for user ID: %d\n", userID)
+
 		// Получаем все чаты пользователя (как покупателя, так и продавца)
 		query := `
 			SELECT c.id, c.listing_id, c.buyer_id, c.seller_id, c.created_at,
@@ -119,8 +123,8 @@ func GetChatsHandler(db *sqlx.DB) gin.HandlerFunc {
 					   WHEN c.buyer_id = $1 THEN s.name
 					   ELSE b.name
 				   END as other_user_name,
-				   m.content as last_message,
-				   m.created_at as last_message_time,
+				   COALESCE(m.content, '') as last_message,
+				   COALESCE(m.created_at, c.created_at) as last_message_time,
 				   (SELECT COUNT(*) FROM messages 
 					WHERE chat_id = c.id AND user_id != $1 AND is_read = false) as unread_count
 			FROM chats c
@@ -133,15 +137,21 @@ func GetChatsHandler(db *sqlx.DB) gin.HandlerFunc {
 				FROM messages
 			) m ON m.chat_id = c.id AND m.rn = 1
 			WHERE c.buyer_id = $1 OR c.seller_id = $1
-			ORDER BY m.created_at DESC
+			ORDER BY COALESCE(m.created_at, c.created_at) DESC
 		`
+
+		// Debug logging
+		fmt.Println("Running chat query:", query)
 
 		var chats []models.ChatResponse
 		err := db.Select(&chats, query, userID)
 		if err != nil {
+			fmt.Printf("ERROR fetching chats: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "ошибка получения чатов"})
 			return
 		}
+
+		fmt.Printf("Found %d chats\n", len(chats))
 
 		// Получаем основное изображение для каждого объявления
 		for i := range chats {

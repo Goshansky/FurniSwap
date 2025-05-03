@@ -1,4 +1,4 @@
-package scripts
+package main
 
 import (
 	"FurniSwap/utils"
@@ -9,7 +9,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func VerifyDB() {
+func main() {
 	// Подключение к базе данных
 	log.Println("Подключение к базе данных...")
 
