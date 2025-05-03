@@ -1,0 +1,884 @@
+{
+	"info": {
+		"_postman_id": "5e8f8f5a-1a1a-4a1a-9a1a-1a1a1a1a1a1a",
+		"name": "FurniSwap API",
+		"description": "Коллекция для тестирования API FurniSwap - приложения для продажи поддержанной мебели",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "token",
+			"value": ""
+		}
+	],
+	"item": [
+		{
+			"name": "Аутентификация",
+			"item": [
+				{
+					"name": "Регистрация пользователя",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\",\n    \"name\": \"Иван\",\n    \"last_name\": \"Иванов\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "Регистрация нового пользователя с указанием email, пароля, имени и фамилии"
+					},
+					"response": []
+				},
+				{
+					"name": "Подтверждение регистрации",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"code\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/verify",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"verify"
+							]
+						},
+						"description": "Подтверждение регистрации с помощью кода отправленного на email"
+					},
+					"response": []
+				},
+				{
+					"name": "Вход пользователя",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"if (jsonData && jsonData.token) {",
+									"    pm.environment.set(\"token\", jsonData.token);",
+									"    console.log(\"Token saved: \" + jsonData.token);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Вход в систему с указанием email и пароля. Генерирует код для двухфакторной аутентификации, который отправляется на email"
+					},
+					"response": []
+				},
+				{
+					"name": "Подтверждение двухфакторной аутентификации",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"if (jsonData && jsonData.token) {",
+									"    pm.environment.set(\"token\", jsonData.token);",
+									"    console.log(\"Token saved: \" + jsonData.token);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"code\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/verify-2fa",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"verify-2fa"
+							]
+						},
+						"description": "Подтверждение входа с помощью второго фактора аутентификации"
+					},
+					"response": []
+				}
+			],
+			"description": "Эндпоинты для регистрации, подтверждения и авторизации пользователей"
+		},
+		{
+			"name": "2. Профиль пользователя",
+			"item": [
+				{
+					"name": "Получение профиля",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"profile"
+							]
+						},
+						"description": "Получение профиля аутентифицированного пользователя"
+					},
+					"response": []
+				},
+				{
+					"name": "Обновление профиля",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Иван\",\n    \"last_name\": \"Иванов\",\n    \"city\": \"Москва\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"profile"
+							]
+						},
+						"description": "Обновление имени, фамилии и города пользователя"
+					},
+					"response": []
+				},
+				{
+					"name": "Загрузка аватара",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "avatar",
+									"type": "file",
+									"src": "/path/to/avatar.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/profile/avatar",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"profile",
+								"avatar"
+							]
+						},
+						"description": "Загрузка изображения для аватара пользователя"
+					},
+					"response": []
+				}
+			],
+			"description": "Эндпоинты для работы с профилем пользователя"
+		},
+		{
+			"name": "3. Категории",
+			"item": [
+				{
+					"name": "Список категорий",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/categories",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"categories"
+							]
+						},
+						"description": "Получение списка всех доступных категорий мебели"
+					},
+					"response": []
+				}
+			],
+			"description": "Эндпоинты для получения списка категорий мебели"
+		},
+		{
+			"name": "4. Объявления (публичные)",
+			"item": [
+				{
+					"name": "Список объявлений",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/listings?category_id=1&city=Москва&min_price=1000&max_price=50000&condition=хорошее&sort_by=-date&page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"listings"
+							],
+							"query": [
+								{
+									"key": "category_id",
+									"value": "1",
+									"description": "ID категории"
+								},
+								{
+									"key": "city",
+									"value": "Москва",
+									"description": "Город"
+								},
+								{
+									"key": "min_price",
+									"value": "1000",
+									"description": "Минимальная цена"
+								},
+								{
+									"key": "max_price",
+									"value": "50000",
+									"description": "Максимальная цена"
+								},
+								{
+									"key": "condition",
+									"value": "хорошее",
+									"description": "Состояние (новое, хорошее, среднее, плохое)"
+								},
+								{
+									"key": "sort_by",
+									"value": "-date",
+									"description": "Сортировка (date, -date, price, -price)"
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Номер страницы"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Количество элементов на странице"
+								}
+							]
+						},
+						"description": "Получение списка объявлений с фильтрацией и сортировкой"
+					},
+					"response": []
+				},
+				{
+					"name": "Просмотр объявления",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/listings/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"listings",
+								"1"
+							]
+						},
+						"description": "Получение детальной информации об объявлении"
+					},
+					"response": []
+				}
+			],
+			"description": "Публичные эндпоинты для просмотра объявлений"
+		},
+		{
+			"name": "5. Объявления (приватные)",
+			"item": [
+				{
+					"name": "Создание объявления",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Диван угловой IKEA\",\n    \"description\": \"Отличный угловой диван в хорошем состоянии, цвет серый, размеры 250x180 см\",\n    \"price\": 25000,\n    \"condition\": \"хорошее\",\n    \"city\": \"Москва\",\n    \"category_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/listings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"listings"
+							]
+						},
+						"description": "Создание нового объявления"
+					},
+					"response": []
+				},
+				{
+					"name": "Обновление объявления",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Диван угловой IKEA (обновлено)\",\n    \"description\": \"Отличный угловой диван в хорошем состоянии, цвет серый, размеры 250x180 см\",\n    \"price\": 23000,\n    \"condition\": \"хорошее\",\n    \"city\": \"Москва\",\n    \"category_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/listings/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"listings",
+								"1"
+							]
+						},
+						"description": "Обновление существующего объявления"
+					},
+					"response": []
+				},
+				{
+					"name": "Удаление объявления",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/listings/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"listings",
+								"1"
+							]
+						},
+						"description": "Удаление объявления"
+					},
+					"response": []
+				},
+				{
+					"name": "Загрузка изображения",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "image",
+									"type": "file",
+									"src": "/path/to/furniture.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/listings/1/images",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"listings",
+								"1",
+								"images"
+							]
+						},
+						"description": "Загрузка изображения для объявления"
+					},
+					"response": []
+				},
+				{
+					"name": "Удаление изображения",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/listings/1/images/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"listings",
+								"1",
+								"images",
+								"1"
+							]
+						},
+						"description": "Удаление изображения объявления"
+					},
+					"response": []
+				},
+				{
+					"name": "Установка главного изображения",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/listings/1/images/2/main",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"listings",
+								"1",
+								"images",
+								"2",
+								"main"
+							]
+						},
+						"description": "Установка изображения в качестве главного"
+					},
+					"response": []
+				}
+			],
+			"description": "Эндпоинты для управления объявлениями (требуют авторизации)"
+		},
+		{
+			"name": "6. Избранное",
+			"item": [
+				{
+					"name": "Добавление в избранное",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/listings/1/favorite",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"listings",
+								"1",
+								"favorite"
+							]
+						},
+						"description": "Добавление объявления в избранное"
+					},
+					"response": []
+				},
+				{
+					"name": "Удаление из избранного",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/listings/1/favorite",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"listings",
+								"1",
+								"favorite"
+							]
+						},
+						"description": "Удаление объявления из избранного"
+					},
+					"response": []
+				},
+				{
+					"name": "Проверка наличия в избранном",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/listings/1/favorite",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"listings",
+								"1",
+								"favorite"
+							]
+						},
+						"description": "Проверка наличия объявления в избранном"
+					},
+					"response": []
+				},
+				{
+					"name": "Список избранных объявлений",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/favorites",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"favorites"
+							]
+						},
+						"description": "Получение списка всех избранных объявлений пользователя"
+					},
+					"response": []
+				}
+			],
+			"description": "Эндпоинты для работы с избранными объявлениями"
+		},
+		{
+			"name": "7. Чаты и сообщения",
+			"item": [
+				{
+					"name": "Создание чата",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"listing_id\": 1,\n    \"message\": \"Здравствуйте, этот диван ещё в продаже?\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/chats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"chats"
+							]
+						},
+						"description": "Создание нового чата по объявлению с сообщением"
+					},
+					"response": []
+				},
+				{
+					"name": "Список чатов",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/chats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"chats"
+							]
+						},
+						"description": "Получение списка всех чатов пользователя"
+					},
+					"response": []
+				},
+				{
+					"name": "Получение сообщений чата",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/chats/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"chats",
+								"1"
+							]
+						},
+						"description": "Получение всех сообщений в чате"
+					},
+					"response": []
+				},
+				{
+					"name": "Отправка сообщения",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"Да, конечно! Вы можете посмотреть его по адресу ...\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/chats/1/messages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"chats",
+								"1",
+								"messages"
+							]
+						},
+						"description": "Отправка нового сообщения в чат"
+					},
+					"response": []
+				}
+			],
+			"description": "Эндпоинты для работы с чатами и сообщениями"
+		}
+	]
+} 
