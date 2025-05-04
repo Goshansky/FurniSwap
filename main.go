@@ -77,9 +77,14 @@ func updateDatabaseStructure(db *sqlx.DB) {
 
 func main() {
 	// Загружаем .env
-	err := godotenv.Load()
+	err := godotenv.Load(".env")
 	if err != nil {
-		log.Println("Предупреждение: Ошибка загрузки .env файла. Используются значения по умолчанию.")
+		log.Println("Ошибка загрузки .env файла:", err)
+		// Пробуем загрузить env.txt
+		err = godotenv.Load("env.txt")
+		if err != nil {
+			log.Println("Предупреждение: Ошибка загрузки env.txt файла. Используются значения по умолчанию.")
+		}
 	}
 
 	// Создаем директорию для загрузок, если ее нет
@@ -87,7 +92,34 @@ func main() {
 		log.Fatal("Ошибка создания директории uploads:", err)
 	}
 
-	connectionString := fmt.Sprintf("host=localhost port=5431 user=postgres password=password dbname=furni_swap sslmode=disable")
+	// Получаем параметры подключения из переменных окружения
+	dbHost := os.Getenv("DB_HOST")
+	if dbHost == "" {
+		dbHost = "localhost"
+	}
+
+	dbPort := os.Getenv("DB_PORT")
+	if dbPort == "" {
+		dbPort = "5431"
+	}
+
+	dbUser := os.Getenv("DB_USER")
+	if dbUser == "" {
+		dbUser = "postgres"
+	}
+
+	dbPassword := os.Getenv("DB_PASSWORD")
+	if dbPassword == "" {
+		dbPassword = "password"
+	}
+
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		dbName = "furni_swap"
+	}
+
+	connectionString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		dbHost, dbPort, dbUser, dbPassword, dbName)
 	log.Println("Подключение к базе данных:", connectionString)
 
 	// Подключение к БД
@@ -172,6 +204,11 @@ func main() {
 		api.DELETE("/listings/:id/favorite", handlers.RemoveFavoriteHandler(db))
 		api.GET("/listings/:id/favorite", handlers.IsFavoriteHandler(db))
 		api.GET("/favorites", handlers.GetFavoritesHandler(db))
+
+		// Покупки
+		api.POST("/listings/:id/buy", handlers.BuyListingHandler(db))
+		api.GET("/purchases", handlers.GetUserPurchasesHandler(db))
+		api.GET("/sales", handlers.GetUserSalesHandler(db))
 
 		// Чаты и сообщения
 		api.POST("/chats", handlers.InitiateChatHandler(db))

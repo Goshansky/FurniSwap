@@ -32,12 +32,12 @@ func GetListingsHandler(db *sqlx.DB) gin.HandlerFunc {
 		// Построение запроса с фильтрами
 		query := `
 			SELECT l.id, l.user_id, l.title, l.description, l.price, l.condition, l.city, 
-			       l.category_id, l.created_at, l.updated_at, u.name as user_name
+			       l.category_id, l.status, l.created_at, l.updated_at, u.name as user_name
 			FROM listings l
 			JOIN users u ON l.user_id = u.id
-			WHERE 1=1
+			WHERE l.status = 'available'
 		`
-		countQuery := `SELECT COUNT(*) FROM listings l WHERE 1=1`
+		countQuery := `SELECT COUNT(*) FROM listings l WHERE l.status = 'available'`
 
 		var args []interface{}
 		argIndex := 1
@@ -169,7 +169,7 @@ func GetListingHandler(db *sqlx.DB) gin.HandlerFunc {
 		var listing models.Listing
 		err = db.Get(&listing, `
 			SELECT l.id, l.user_id, l.title, l.description, l.price, 
-			       l.condition, l.city, l.category_id, l.created_at, l.updated_at,
+			       l.condition, l.city, l.category_id, l.status, l.created_at, l.updated_at,
 			       u.name as user_name
 			FROM listings l
 			JOIN users u ON l.user_id = u.id
@@ -232,8 +232,8 @@ func CreateListingHandler(db *sqlx.DB) gin.HandlerFunc {
 		// Создаем объявление
 		var listingID int
 		err = tx.QueryRow(`
-			INSERT INTO listings (user_id, title, description, price, condition, city, category_id)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)
+			INSERT INTO listings (user_id, title, description, price, condition, city, category_id, status)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, 'available')
 			RETURNING id
 		`, userID, req.Title, req.Description, req.Price, req.Condition, req.City, req.CategoryID).Scan(&listingID)
 		if err != nil {

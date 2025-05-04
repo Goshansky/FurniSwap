@@ -44,6 +44,28 @@ func CheckDatabase(db *sqlx.DB) {
 		log.Printf("Количество категорий в базе: %d", categoriesCount)
 	}
 
+	// Проверка таблицы purchases
+	var purchasesCount int
+	err = db.Get(&purchasesCount, "SELECT COUNT(*) FROM purchases")
+	if err != nil {
+		log.Printf("Таблица purchases не существует или другая ошибка: %v", err)
+		// Проверяем, существует ли столбец status в таблице listings
+		var hasStatusColumn bool
+		err = db.Get(&hasStatusColumn, `
+			SELECT EXISTS (
+				SELECT 1 FROM information_schema.columns 
+				WHERE table_name = 'listings' AND column_name = 'status'
+			)
+		`)
+		if err != nil {
+			log.Printf("Ошибка при проверке столбца status в listings: %v", err)
+		} else if !hasStatusColumn {
+			log.Println("Необходимо выполнить миграцию add_purchases.sql")
+		}
+	} else {
+		log.Printf("Количество записей в таблице purchases: %d", purchasesCount)
+	}
+
 	// Проверка структуры таблицы users
 	var userColumns []string
 	err = db.Select(&userColumns, `

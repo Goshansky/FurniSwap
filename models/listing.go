@@ -14,6 +14,7 @@ type Listing struct {
 	Condition   string    `db:"condition" json:"condition"`
 	City        string    `db:"city" json:"city"`
 	CategoryID  int       `db:"category_id" json:"category_id"`
+	Status      string    `db:"status" json:"status"`
 	CreatedAt   time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
 	Images      []Image   `json:"images,omitempty"`                   // Не хранится в БД, заполняется отдельным запросом
@@ -73,4 +74,15 @@ type Favorite struct {
 	UserID    int       `db:"user_id" json:"user_id"`
 	ListingID int       `db:"listing_id" json:"listing_id"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
+}
+
+// Purchase представляет информацию о покупке
+type Purchase struct {
+	ID          int       `db:"id" json:"id"`
+	ListingID   int       `db:"listing_id" json:"listing_id"`
+	BuyerID     int       `db:"buyer_id" json:"buyer_id"`
+	SellerID    int       `db:"seller_id" json:"seller_id"`
+	Price       float64   `db:"price" json:"price"`
+	PurchasedAt time.Time `db:"purchased_at" json:"purchased_at"`
+	Listing     *Listing  `json:"listing,omitempty"` // Детали объявления, если нужны
 }

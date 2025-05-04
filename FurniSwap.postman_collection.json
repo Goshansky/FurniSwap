@@ -879,6 +879,108 @@
 				}
 			],
 			"description": "Эндпоинты для работы с чатами и сообщениями"
+		},
+		{
+			"name": "7. Покупки",
+			"item": [
+				{
+					"name": "Покупка товара",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/listings/:id/buy",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"listings",
+								":id",
+								"buy"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID объявления, которое покупается"
+								}
+							]
+						},
+						"description": "Покупка товара по ID объявления. После успешной покупки статус объявления меняется на 'sold' и оно больше не отображается в общем списке."
+					},
+					"response": []
+				},
+				{
+					"name": "Получение истории покупок",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/purchases",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"purchases"
+							]
+						},
+						"description": "Получение истории покупок пользователя. Возвращает список всех товаров, которые купил пользователь."
+					},
+					"response": []
+				},
+				{
+					"name": "Получение истории продаж",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/sales",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"sales"
+							]
+						},
+						"description": "Получение истории продаж пользователя. Возвращает список всех товаров, которые продал пользователь."
+					},
+					"response": []
+				}
+			],
+			"description": "Эндпоинты для работы с покупками товаров"
 		}
 	]
 } 
