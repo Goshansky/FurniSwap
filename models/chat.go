@@ -37,6 +37,9 @@ type CreateMessageRequest struct {
 type ChatResponse struct {
 	ID              int       `db:"id" json:"id"`
 	ListingID       int       `db:"listing_id" json:"listing_id"`
+	BuyerID         int       `db:"buyer_id" json:"buyer_id,omitempty"`
+	SellerID        int       `db:"seller_id" json:"seller_id,omitempty"`
+	CreatedAt       time.Time `db:"created_at" json:"created_at,omitempty"`
 	ListingTitle    string    `db:"listing_title" json:"listing_title"`
 	ImageURL        string    `json:"image_url,omitempty"`
 	OtherUserID     int       `db:"other_user_id" json:"other_user_id"`

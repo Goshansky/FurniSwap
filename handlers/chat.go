@@ -3,7 +3,7 @@ package handlers
 import (
 	"FurniSwap/models"
 	"database/sql"
-	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -108,8 +108,8 @@ func GetChatsHandler(db *sqlx.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := c.GetInt("userID")
 
-		// Debug logging
-		fmt.Printf("Fetching chats for user ID: %d\n", userID)
+		// Подробное логирование
+		log.Printf("Fetching chats for user ID: %d", userID)
 
 		// Получаем все чаты пользователя (как покупателя, так и продавца)
 		query := `
@@ -141,17 +141,17 @@ func GetChatsHandler(db *sqlx.DB) gin.HandlerFunc {
 		`
 
 		// Debug logging
-		fmt.Println("Running chat query:", query)
+		log.Printf("Running chat query for user %d", userID)
 
 		var chats []models.ChatResponse
 		err := db.Select(&chats, query, userID)
 		if err != nil {
-			fmt.Printf("ERROR fetching chats: %v\n", err)
+			log.Printf("ERROR fetching chats: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "ошибка получения чатов"})
 			return
 		}
 
-		fmt.Printf("Found %d chats\n", len(chats))
+		log.Printf("Found %d chats for user %d", len(chats), userID)
 
 		// Получаем основное изображение для каждого объявления
 		for i := range chats {
@@ -164,6 +164,10 @@ func GetChatsHandler(db *sqlx.DB) gin.HandlerFunc {
 			`, chats[i].ListingID)
 			if err == nil {
 				chats[i].ImageURL = imagePath
+				log.Printf("Added image path for chat %d, listing %d: %s",
+					chats[i].ID, chats[i].ListingID, imagePath)
+			} else if err != sql.ErrNoRows {
+				log.Printf("Error getting image for listing %d: %v", chats[i].ListingID, err)
 			}
 		}
 
