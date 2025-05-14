@@ -542,6 +542,48 @@
 					"response": []
 				},
 				{
+					"name": "Добавление изображения по URL",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "image_url",
+									"value": "https://example.com/images/furniture.jpg",
+									"type": "text",
+									"description": "URL изображения из интернета"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/listings/1/images",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"listings",
+								"1",
+								"images"
+							]
+						},
+						"description": "Добавление изображения по URL для объявления"
+					},
+					"response": []
+				},
+				{
 					"name": "Удаление изображения",
 					"request": {
 						"auth": {
