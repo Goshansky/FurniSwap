@@ -1,5 +1,5 @@
 -- Add status column to listings table
-ALTER TABLE listings ADD COLUMN status TEXT NOT NULL DEFAULT 'available';
+ALTER TABLE listings ADD COLUMN status TEXT NOT NULL DEFAULT 'active';
 
 -- Create purchases table to track buying history
 CREATE TABLE purchases (

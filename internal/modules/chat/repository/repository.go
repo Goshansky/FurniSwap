@@ -122,9 +122,9 @@ func (r *Repository) GetUserChats(userID, page, limit int) (*model.ChatResponse,
 			   u1.name || ' ' || COALESCE(u1.last_name, '') as user1_name,
 			   u2.name || ' ' || COALESCE(u2.last_name, '') as user2_name,
 			   l.title as listing_title,
-			   (SELECT content FROM messages 
+			   COALESCE((SELECT content FROM messages 
 				WHERE chat_id = c.id 
-				ORDER BY created_at DESC LIMIT 1) as last_message
+				ORDER BY created_at DESC LIMIT 1), '') as last_message
 		FROM chats c
 		JOIN users u1 ON c.buyer_id = u1.id
 		JOIN users u2 ON c.seller_id = u2.id

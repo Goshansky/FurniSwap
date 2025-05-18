@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "5e8f8f5a-1a1a-4a1a-9a1a-1a1a1a1a1a1a",
 		"name": "FurniSwap API",
-		"description": "Коллекция для тестирования API FurniSwap - приложения для продажи поддержанной мебели",
+		"description": "Коллекция для тестирования API FurniSwap - приложения для продажи подержанной мебели",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
